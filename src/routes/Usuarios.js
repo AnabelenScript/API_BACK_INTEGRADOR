@@ -12,7 +12,7 @@ router.get('/login', login);
 router.post('/addUser', addUser);
 router.post('/registrarPersonal', registrarPersonal)
 router.post('/registrarVivienda', usuariosController.registrarVivienda)
-router.post('/registrarEconomico',usuariosController.login)
+router.post('/registrarEconomico',usuariosController.registrarEconomico)
 
 module.exports = router;
 

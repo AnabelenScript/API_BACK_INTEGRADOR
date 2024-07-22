@@ -18,6 +18,7 @@ db.connect((err) => {
   }
   console.log('Conexión a la BD establecida');
 });
+
 exports.login = async (req, res) => {
   const { email, password } = req.query;
 
@@ -57,7 +58,7 @@ const authenticateJWT = (req, res, next) => {
         return res.sendStatus(403); 
       }
       req.user = user;
-      req.params.id = user.id; // Agregar idUsuario a req.params
+      req.params.id = user.id;
       next();
     });
   } else {
@@ -92,54 +93,148 @@ exports.registrarPersonal = [authenticateJWT, (req, res) => {
       return res.status(404).send('id de Usuario no encontrado');
     }
 
-    db.query('INSERT INTO datosPersonales (idUsuario, edad, nombre, apellidoPaterno, apellidoMaterno, telefono, numHijos, estadoCivil, fechaNacimiento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-      [idUsuario, edad, nombre, apellidoPaterno, apellidoMaterno, telefono, numHijos, estadoCivil, fechaNacimiento], (err, result) => {
+    db.query('SELECT * FROM datosPersonales WHERE idUsuario = ?', [idUsuario], (err, result) => {
       if (err) {
-        res.status(500).send('Error al registrar los datos');
+        res.status(500).send('Error en el servidor');
         throw err;
       }
-      res.send('Datos registrados correctamente');
+      if (result.length > 0) {
+        return res.status(409).send('Los datos personales ya están agregados a la base');
+      }
+      db.query('INSERT INTO datosPersonales (idUsuario, edad, nombre, apellidoPaterno, apellidoMaterno, telefono, numHijos, estadoCivil, fechaNacimiento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [idUsuario, edad, nombre, apellidoPaterno, apellidoMaterno, telefono, numHijos, estadoCivil, fechaNacimiento], (err, result) => {
+        if (err) {
+          res.status(500).send('Error al registrar los datos');
+          throw err;
+        }
+        db.query('SELECT idDatosPersonales FROM datosPersonales WHERE idUsuario = ?',
+          [idUsuario], (err, result) => {
+          if (err) {
+            res.status(500).send('Error en el servidor');
+            throw err;
+          }
+          if (result.length === 0) {
+            return res.status(500).send('No se pudo obtener el ID de los datos económicos');
+          }
+          const idDatosPersonales = result[0].idDatosPersonales;
+          db.query('UPDATE Usuarios SET idDatosPersonales = ? WHERE idUsuario = ?',
+            [idDatosPersonales, idUsuario], (err, result) => {
+            if (err) {
+              res.status(500).send('Error al actualizar el usuario');
+              throw err;
+            }
+            res.status(201).json({ message: 'Datos registrados correctamente'});
+          });
+        });
+      });
     });
   });
 }];
 
 
-
 exports.registrarVivienda = [authenticateJWT, (req, res) => {
-  const { calle, colonia, numExterior, codigoPostal, numInterior, numHabitaciones, estatusVivienda, tipoVivienda } = req.body;
+  const idUsuario = req.params.id;
+  const { calle, colonia, numeroExterior, codigoPostal, numInterior, numHabitaciones, estatusVivienda, tipoVivienda } = req.body;
 
-  if (!calle || !colonia || !numExterior || !codigoPostal || !numInterior || !numHabitaciones|| !estatusVivienda || !tipoVivienda) {
+  if (!calle || !colonia || !numeroExterior || !codigoPostal || !numInterior || !numHabitaciones || !estatusVivienda || !tipoVivienda) {
     return res.status(400).send('Los datos completos son requeridos');
   }
-    db.query('INSERT INTO datosVivienda (calle, colonia, numExterior, codigoPostal, numInterior, numHabitaciones, estatusVivienda, tipoVivienda) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-      [calle, colonia, numExterior, codigoPostal, numInterior, numHabitaciones, estatusVivienda, tipoVivienda], (err, result) => {
+
+  db.query('SELECT * FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      return res.status(500).send('Error en el servidor');
+    }
+    if (result.length === 0) {
+      return res.status(404).send('id de Usuario no encontrado');
+    }
+
+    db.query('SELECT * FROM datosVivienda WHERE idUsuario = ?', [idUsuario], (err, result) => {
       if (err) {
-        res.status(500).send('Error al registrar los datos');
-        throw err;
+        return res.status(500).send('Error en el servidor');
       }
-      res.send('Datos de vivienda registrados correctamente');
+      if (result.length > 0) {
+        return res.status(409).send('Los datos de vivienda ya están agregados a la base');
+      }
+
+      db.query('INSERT INTO datosVivienda (idUsuario, calle, colonia, numeroExterior, codigoPostal, numInterior, numHabitaciones, estatusVivienda, tipoVivienda) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+        [idUsuario, calle, colonia, numeroExterior, codigoPostal, numInterior, numHabitaciones, estatusVivienda, tipoVivienda], (err, result) => {
+        if (err) {
+          return res.status(500).send('Error al registrar los datos');
+        }
+
+        db.query('SELECT idVivienda FROM datosVivienda WHERE idUsuario = ?', [idUsuario], (err, result) => {
+          if (err) {
+            return res.status(500).send('Error en el servidor');
+          }
+          if (result.length === 0) {
+            return res.status(500).send('No se pudo obtener el ID de los datos de vivienda');
+          }
+
+          const idDatosVivienda = result[0].idVivienda;
+          db.query('UPDATE Usuarios SET idDatosVivienda = ? WHERE idUsuario = ?', [idDatosVivienda, idUsuario], (err, result) => {
+            if (err) {
+              return res.status(500).send('Error al actualizar el usuario');
+            }
+            return res.status(201).json({ message: 'Datos registrados correctamente'});
+          });
+        });
+      });
     });
+  });
 }];
 
 
 exports.registrarEconomico = [authenticateJWT, (req, res) => {
-  const { ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos} = req.body;
-
+  const idUsuario = req.params.id;
+  const { ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos } = req.body;
   if (!ocupacion || !ingresosMensuales || !gastosMensuales || !apoyosExternos) {
     return res.status(400).send('Los datos completos son requeridos');
   }
-
-    db.query('INSERT INTO datosEconomicos (ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos) VALUES (?, ?, ?, ?)', 
-      [ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos], (err, result) => {
+  db.query('SELECT * FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error en el servidor');
+      throw err;
+    }
+    if (result.length === 0) {
+      return res.status(404).send('id de Usuario no encontrado');
+    }
+    db.query('SELECT * FROM datosEconomicos WHERE idUsuario = ?', [idUsuario], (err, result) => {
       if (err) {
-        res.status(500).send('Error al registrar los datos');
+        res.status(500).send('Error en el servidor');
         throw err;
       }
-      res.send('Datos economicos registrados correctamente');
+      if (result.length > 0) {
+        return res.status(409).send('Los datos económicos ya están agregados a la base');
+      }
+      db.query('INSERT INTO datosEconomicos (idUsuario, ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos) VALUES (?, ?, ?, ?, ?)',
+        [idUsuario, ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos], (err, result) => {
+        if (err) {
+          res.status(500).send('Error al registrar los datos');
+          throw err;
+        }
+        db.query('SELECT iddatosEconomicos FROM datosEconomicos WHERE idUsuario = ?',
+          [idUsuario], (err, result) => {
+          if (err) {
+            res.status(500).send('Error en el servidor');
+            throw err;
+          }
+          if (result.length === 0) {
+            return res.status(500).send('No se pudo obtener el ID de los datos económicos');
+          }
+          const idDatosEconomicos = result[0].iddatosEconomicos;
+          db.query('UPDATE Usuarios SET idDatosEconomicos = ? WHERE idUsuario = ?',
+            [idDatosEconomicos, idUsuario], (err, result) => {
+            if (err) {
+              res.status(500).send('Error al actualizar el usuario');
+              throw err;
+            }
+            res.status(201).json({ message: 'Datos registrados correctamente'});
+          });
+        });
+      });
     });
+  });
 }];
-
-
 
 
 exports.addUser = (req, res) => {
