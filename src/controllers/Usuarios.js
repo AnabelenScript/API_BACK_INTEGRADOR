@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
       return res.status(500).send('Error en el servidor');
     }
     if (result.length === 0) {
-      return res.status(401).send('Correo electrónico o contraseña incorrectos');
+      return res.status(401).send('Correo electrónico');
     }
     const user = result[0];
     let validPassword;
@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
       return res.status(500).send('Error en la comparación de contraseñas');
     }
     if (!validPassword) {
-      return res.status(401).send('Correo electrónico o contraseña incorrectos');
+      return res.status(401).send('Contraseña incorrectos');
     }
     const idUsuario = user.idUsuario;
     const token = jwt.sign({ id: idUsuario }, process.env.JWT_SECRET, { expiresIn: '1h' });

@@ -14,20 +14,21 @@ db.connect((err) => {
 });
 
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.split(' ')[1];
-      jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-          return res.sendStatus(403); 
-        }
-        req.user = user;
-        next();
-      });
-    } else {
-      res.sendStatus(401); 
-    }
-  };
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.sendStatus(403); 
+      }
+      req.user = user;
+      req.params.id = user.id;
+      next();
+    });
+  } else {
+    res.sendStatus(401); 
+  }
+};
 
 exports.getAllDenuncias = [authenticateJWT, (req, res) => {
     db.query('SELECT * FROM Denuncias', (err, result) => {
@@ -40,22 +41,33 @@ exports.getAllDenuncias = [authenticateJWT, (req, res) => {
   }];
 
   exports.addDenuncia = [authenticateJWT, (req, res) => {
-    const { gravedadCaso, gastosMensuales, numPersonasEnCasa, ingresosDiarios } = req.body;
-  
-    if (!gravedadCaso || !gastosMensuales || !numPersonasEnCasa || !ingresosDiarios) {
-      return res.status(400).send('Todos los campos son obligatorios');
+    const idUsuario = req.params.id;
+    const { gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia } = req.body;
+
+    if (!gravedadCaso || !motivoDenuncia || !fechaDenuncia || !estatusDenuncia || !horaDenuncia) {
+        return res.status(400).send('Los datos completos son requeridos');
     }
-  
-    const newDenuncia = { gravedadCaso, gastosMensuales, numPersonasEnCasa, ingresosDiarios };
-  
-    db.query('INSERT INTO Denuncia SET ?', newDenuncia, (err, result) => {
-      if (err) {
-        res.status(500).send('Error al agregar la denuncia');
-        throw err;
-      }
-      res.status(201).send('Denuncia reportada correctamente');
+    db.query('SELECT idDatosPersonales, idDatosVivienda, idDatosEconomicos FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
+        if (err) {
+            return res.status(500).send('Error en el servidor');
+        }
+        if (result.length === 0) {
+            return res.status(404).send('ID de Usuario no encontrado');
+        }
+        const usuario = result[0];
+        if (!usuario.idDatosPersonales || !usuario.idDatosVivienda || !usuario.idDatosEconomicos) {
+            return res.status(400).send('Debe completar el registro de datos (Datos Personales, Vivienda y Datos Económicos) antes de agregar una denuncia');
+        }
+        db.query('INSERT INTO Denuncia (idUsuario, gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia) VALUES (?,?,?,?,?,?)',
+            [idUsuario, gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia], (err, result) => {
+                if (err) {
+                    return res.status(500).send('Error al registrar los datos');
+                }
+                res.status(201).send('Denuncia registrada correctamente');
+        });
     });
-  }];
+}];
+
   
 
   exports.updateDenuncia = [authenticateJWT, (req, res) => {

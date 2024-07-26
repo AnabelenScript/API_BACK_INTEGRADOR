@@ -13,21 +13,21 @@ db.connect((err) => {
 });
 
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.split(' ')[1];
-      jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-          return res.sendStatus(403); 
-        }
-        req.user = user;
-        next();
-      });
-    } else {
-      res.sendStatus(401);
-    }
-  };
-
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.sendStatus(403); 
+      }
+      req.user = user;
+      req.params.id = user.id;
+      next();
+    });
+  } else {
+    res.sendStatus(401); 
+  }
+};
 exports.getAllCitas = [authenticateJWT, (req, res) => {
     db.query('SELECT * FROM Citas', (err, result) => {
       if (err) {
@@ -38,13 +38,12 @@ exports.getAllCitas = [authenticateJWT, (req, res) => {
     });
   }];
 
-exports.addCita = (req, res) => {
+  exports.addCita = [authenticateJWT, (req, res) => {
+    const idUsuario = req.params.id;
     const { tipo, fecha, horario, idDenuncia } = req.body;
-  
     if (!tipo || !fecha || !horario) {
       return res.status(400).send('Todos los campos son obligatorios');
     }
-    const newCita = { tipo, fecha, horario };
     if (idDenuncia) {
       db.query('SELECT * FROM Denuncias WHERE idDenuncia = ?', [idDenuncia], (err, result) => {
         if (err) {
@@ -53,23 +52,36 @@ exports.addCita = (req, res) => {
         if (result.length === 0) {
           return res.status(404).send('La denuncia con el id proporcionado no existe');
         }
-        newCita.idDenuncia = idDenuncia;
-        db.query('INSERT INTO Citas SET ?', newCita, (err, result) => {
+        db.query('SELECT idDatosPersonales, idDatosVivienda, idDatosEconomicos FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
           if (err) {
-            return res.status(500).send('Error al agregar la cita');
+            return res.status(500).send('Error en el servidor');
           }
-          res.status(201).send('Cita reportada correctamente con idDenuncia');
+          if (result.length === 0) {
+            return res.status(404).send('ID de Usuario no encontrado');
+          }
+          const usuario = result[0];
+          if (!usuario.idDatosPersonales || !usuario.idDatosVivienda || !usuario.idDatosEconomicos) {
+            return res.status(400).send('Debe completar el registro de datos (Datos Personales, Vivienda y Datos Económicos) antes de agregar una cita');
+          }
+          db.query('INSERT INTO Citas (idUsuario, tipo, fecha, horario, idDenuncia) VALUES (?, ?, ?, ?, ?)',
+            [idUsuario, tipo, fecha, horario, idDenuncia], (err, result) => {
+              if (err) {
+                return res.status(500).send('Error al registrar la cita');
+              }
+              res.status(201).send('Cita registrada correctamente');
+            });
         });
       });
     } else {
-      db.query('INSERT INTO Citas SET ?', newCita, (err, result) => {
-        if (err) {
-          return res.status(500).send('Error al agregar la cita');
-        }
-        res.status(201).send('Cita reportada correctamente sin id Denuncia');
-      });
+        db.query('INSERT INTO Citas (idUsuario, tipo, fecha, horario) VALUES (?, ?, ?, ?)',
+          [idUsuario, tipo, fecha, horario], (err, result) => {
+            if (err) {
+              return res.status(500).send('Error al registrar la cita');
+            }
+            res.status(201).send('Cita registrada correctamente');
+          });
     }
-  };
+  }];
   
   exports.updateCita = [authenticateJWT, (req, res) => {
     const idCita = req.params.id;

@@ -39,21 +39,17 @@ exports.getAllEventos = [authenticateJWT, (req, res) => {
   }];
 
   exports.addEvento = [authenticateJWT, (req, res) => {
-    const { fecha, horario, descripcion } = req.body;
+    const { fechaEvento, horario, descripcion, finalInscripcion, calle, colonia, numExterior, codigoPostal } = req.body;
   
-    if (!fecha || !horario || !descripcion) {
+    if (!fechaEvento || !horario || !descripcion || !finalInscripcion || !calle || !colonia || !numExterior || !codigoPostal) {
       return res.status(400).send('Todos los campos son obligatorios');
     }
-  
-    const newEvento = { fecha, horario, descripcion };
-  
-    db.query('INSERT INTO Eventos SET ?', newEvento, (err, result) => {
+    db.query('INSERT INTO datosEconomicos (idUsuario, ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos) VALUES (?, ?, ?, ?, ?)',
+      [idUsuario, ocupacion, ingresosMensuales, gastosMensuales, apoyosExternos], (err, result) => {
       if (err) {
-        res.status(500).send('Error al agregar el evento');
+        res.status(500).send('Error al registrar los datos');
         throw err;
-      }
-      res.status(201).send('Evento agregado correctamente');
-    });
+    }})
   }];
 
   exports.updateEvento = [authenticateJWT, (req, res) => {
