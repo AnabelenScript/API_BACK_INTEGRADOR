@@ -28,16 +28,48 @@ const authenticateJWT = (req, res, next) => {
     res.sendStatus(401); 
   }
 };
-exports.getAllCitas = [authenticateJWT, (req, res) => {
-    db.query('SELECT * FROM Citas', (err, result) => {
-      if (err) {
-        res.status(500).send('Error al obtener las Citas');
-        throw err;
-      }
-      res.json(result);
-    });
-  }];
+exports.getAllCitasPsicologicas = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT * FROM Citas WHERE idUsuario = ? AND tipo = ?', [idUsuario, 'psicologica'], (err, result) => {
+    if (err) {
+      console.error('Error al obtener las citas:', err);
+      res.status(500).send('Error al obtener las citas');
+      return;
+    }
+    res.json(result);
+  });
+}];
 
+// Ruta actualizada para aceptar la fecha como parámetro de consulta
+exports.getCitasFecha = [authenticateJWT, (req, res) => {
+  const fecha = req.query.fecha; // Obtener la fecha de los parámetros de consulta
+  if (!fecha) {
+    return res.status(400).json({ message: 'Fecha es requerida' });
+  }
+
+  // Consulta SQL para obtener citas de tipo 'psicologica' en la fecha especificada
+  db.query('SELECT fecha, horario FROM Citas WHERE tipo = ? AND fecha = ?', ['psicologica', fecha], (err, result) => {
+    if (err) {
+      console.error('Error al obtener las citas:', err);
+      res.status(500).send('Error al obtener las citas');
+      return;
+    }
+    res.json(result);
+  });
+}];
+
+
+exports.getAllCitasJuridicas = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT * FROM Citas WHERE idUsuario = ? AND tipo = ?', [idUsuario, 'juridica'], (err, result) => {
+    if (err) {
+      console.error('Error al obtener las citas:', err);
+      res.status(500).send('Error al obtener las citas');
+      return;
+    }
+    res.json(result);
+  });
+}];
   exports.addCita = [authenticateJWT, (req, res) => {
     const idUsuario = req.params.id;
     const { tipo, fecha, horario, idDenuncia } = req.body;

@@ -13,23 +13,26 @@ db.connect((err) => {
 });
 
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.split(' ')[1];
-      jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-          return res.sendStatus(403); 
-        }
-        req.user = user;
-        next();
-      });
-    } else {
-      res.sendStatus(401);
-    }
-  };
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.sendStatus(403); 
+      }
+      req.user = user;
+      req.params.id = user.id;
+      next();
+    });
+  } else {
+    res.sendStatus(401); 
+  }
+};
+
 
 exports.getAllNoticias = [authenticateJWT, (req, res) => {
-    db.query('SELECT * FROM Noticias', (err, result) => {
+  const idUsuario = req.params.id;
+    db.query('SELECT * FROM Noticias WHERE idUsuario = ?', [idUsuario], (err, result) => {
       if (err) {
         res.status(500).send('Error al obtener las Noticias');
         throw err;

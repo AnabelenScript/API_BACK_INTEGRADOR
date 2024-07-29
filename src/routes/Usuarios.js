@@ -6,6 +6,7 @@ const { addUser } = require('../controllers/Usuarios');
 const {login} = require('../controllers/Usuarios')
 
 router.get('/', usuariosController.getAllUsers);
+router.get('/getPerfil', usuariosController.getPerfil);
 router.put('/:id', usuariosController.updateUser);
 router.delete('/:id', usuariosController.deleteUser);
 router.get('/login', login);

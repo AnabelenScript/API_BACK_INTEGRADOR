@@ -48,7 +48,6 @@ exports.login = async (req, res) => {
     res.json({ mensaje: 'Login exitoso', token });
   });
 };
-
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader) {
@@ -75,6 +74,22 @@ exports.getAllUsers = [authenticateJWT, (req, res) => {
     res.json(result);
   });
 }];
+
+exports.getPerfil = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT tipoPerfil FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener el perfil');
+      throw err;
+    }
+    if (result.length > 0) {
+      res.json(result[0]);
+    } else {
+      res.status(404).send('Perfil no encontrado');
+    }
+  });
+}];
+
 
 exports.registrarPersonal = [authenticateJWT, (req, res) => {
   const idUsuario = req.params.id;
@@ -263,7 +278,7 @@ exports.addUser = (req, res) => {
         }
         const userId = result.insertId; 
         if (tipoPerfil === 1) {
-          db.query('UPDATE Trabajadores SET usuario = ? WHERE idTrabajador = ?', [userId, idTrabajador], (err, result) => {
+          db.query('UPDATE Trabajadores SET idUsuario = ? WHERE idTrabajador = ?', [userId, idTrabajador], (err, result) => {
             if (err) {
               console.error('Error updating Trabajadores:', err);
               return res.status(500).send('Error updating Trabajadores');

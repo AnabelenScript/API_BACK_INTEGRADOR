@@ -15,7 +15,7 @@ const port = process.env.DB_PORT || 3000;
 app.use(bodyParser.json());
 
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: 'figualitario.integrador.xyz', 
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
