@@ -65,6 +65,40 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
+exports.getUser = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT * FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener el usuario');
+      throw err;
+    }
+    res.json(result);
+  });
+}];
+exports.getDatosPersonales = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT * FROM datosPersonales WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener los datos personales');
+      throw err;
+    }
+    res.json(result);
+  });
+}];
+
+exports.getTrabajador = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT * FROM Trabajadores WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener el trabajador');
+      throw err;
+    }
+    res.json(result);
+  });
+}];
+
+
+
 exports.getAllUsers = [authenticateJWT, (req, res) => {
   db.query('SELECT * FROM Usuarios', (err, result) => {
     if (err) {

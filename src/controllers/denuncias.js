@@ -38,14 +38,16 @@ exports.getAllDenuncias = [authenticateJWT, (req, res) => {
         throw err;
       }
       res.json(result);
+      console.log(result);
     });
   }];
 
+
   exports.addDenuncia = [authenticateJWT, (req, res) => {
     const idUsuario = req.params.id;
-    const { gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia } = req.body;
+    const { gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia,caso, fechaCaso, violentador } = req.body;
 
-    if (!gravedadCaso || !motivoDenuncia || !fechaDenuncia || !estatusDenuncia || !horaDenuncia) {
+    if (!gravedadCaso || !motivoDenuncia || !fechaDenuncia || !estatusDenuncia || !horaDenuncia ||! caso ||!fechaCaso ||!violentador) {
         return res.status(400).send('Los datos completos son requeridos');
     }
     db.query('SELECT idDatosPersonales, idDatosVivienda, idDatosEconomicos FROM Usuarios WHERE idUsuario = ?', [idUsuario], (err, result) => {
@@ -59,8 +61,8 @@ exports.getAllDenuncias = [authenticateJWT, (req, res) => {
         if (!usuario.idDatosPersonales || !usuario.idDatosVivienda || !usuario.idDatosEconomicos) {
             return res.status(400).send('Debe completar el registro de datos (Datos Personales, Vivienda y Datos Económicos) antes de agregar una denuncia');
         }
-        db.query('INSERT INTO Denuncia (idUsuario, gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia) VALUES (?,?,?,?,?,?)',
-            [idUsuario, gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia], (err, result) => {
+        db.query('INSERT INTO Denuncia (idUsuario, gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia, caso, fechaCaso, violentador) VALUES (?,?,?,?,?,?,?,?,?)',
+            [idUsuario, gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia, caso, fechaCaso, violentador], (err, result) => {
                 if (err) {
                     return res.status(500).send('Error al registrar los datos');
                 }
@@ -69,14 +71,22 @@ exports.getAllDenuncias = [authenticateJWT, (req, res) => {
     });
 }];
 
-exports.deleteDenuncia = [authenticateJWT, (req, res) => {
-  const { idDenuncia } = req.body; // Asegúrate de desestructurar el idDenuncia del cuerpo de la solicitud
-
-  db.query('DELETE FROM Denuncia WHERE idDenuncia = ?', [idDenuncia], (err, result) => {
-    if (err) {
-      res.status(500).send('Error al eliminar la denuncia');
-      throw err;
+exports.finalizarDenuncia = [authenticateJWT, (req, res) => {
+  const idDenuncia = req.params.idDenuncia;
+  
+  db.query('UPDATE Denuncia SET estatusDenuncia = ? WHERE idDenuncia = ?', 
+    ['finalizada', idDenuncia], 
+    (err, result) => {
+      if (err) {
+        console.error('Error al actualizar el estatus de la denuncia:', err);
+        res.status(500).send('Error al actualizar el estatus de la denuncia');
+        return;
+      }
+      if (result.affectedRows === 0) {
+        res.status(404).send('Denuncia no encontrada o no actualizada');
+      } else {
+        res.send('Denuncia actualizada a finalizado correctamente');
+      }
     }
-    res.send('Denuncia eliminada correctamente');
-  });
+  );
 }];

@@ -7,7 +7,9 @@ const {login} = require('../controllers/Usuarios')
 
 router.get('/', usuariosController.getAllUsers);
 router.get('/getPerfil', usuariosController.getPerfil);
+router.get('/getUser', usuariosController.getUser);
 router.put('/:id', usuariosController.updateUser);
+router.put('/getTrabajador', usuariosController.getTrabajador);
 router.delete('/:id', usuariosController.deleteUser);
 router.get('/login', login);
 router.post('/addUser', addUser);

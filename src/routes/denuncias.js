@@ -5,6 +5,6 @@ const denunciasController = require('../controllers/denuncias');
 
 router.get('/getAllDenuncias', denunciasController.getAllDenuncias);
 router.post('/addDenuncia', denunciasController.addDenuncia);
-router.post('/deleteDenuncia', denunciasController.deleteDenuncia);
+router.put('/finalizarDenuncia/:idDenuncia', denunciasController.finalizarDenuncia);
 
 module.exports = router;
