@@ -40,14 +40,23 @@ exports.getAllCitasPsicologicas = [authenticateJWT, (req, res) => {
   });
 }];
 
-// Ruta actualizada para aceptar la fecha como parámetro de consulta
+exports.verAllCitas = [authenticateJWT, (req, res) => {
+  db.query('SELECT * FROM Citas', [], (err, result) => {
+    if (err) {
+      console.error('Error al obtener las citas:', err);
+      res.status(500).send('Error al obtener las citas');
+      return;
+    }
+    res.json(result);
+  });
+}];
+
 exports.getCitasFecha = [authenticateJWT, (req, res) => {
-  const fecha = req.query.fecha; // Obtener la fecha de los parámetros de consulta
+  const fecha = req.query.fecha; 
   if (!fecha) {
     return res.status(400).json({ message: 'Fecha es requerida' });
   }
 
-  // Consulta SQL para obtener citas de tipo 'psicologica' en la fecha especificada
   db.query('SELECT fecha, horario FROM Citas WHERE tipo = ? AND fecha = ?', ['psicologica', fecha], (err, result) => {
     if (err) {
       console.error('Error al obtener las citas:', err);

@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
       return res.status(500).send('Error en el servidor');
     }
     if (result.length === 0) {
-      return res.status(401).send('Correo electrónico');
+      return res.status(401).send('Correo electrónico incorrecto');
     }
     const user = result[0];
     let validPassword;
@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
       return res.status(500).send('Error en la comparación de contraseñas');
     }
     if (!validPassword) {
-      return res.status(401).send('Contraseña incorrectos');
+      return res.status(401).send('Contraseña incorrecto');
     }
     const idUsuario = user.idUsuario;
     const token = jwt.sign({ id: idUsuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -288,11 +288,9 @@ exports.registrarEconomico = [authenticateJWT, (req, res) => {
 
 exports.addUser = (req, res) => {
   const { email, password, idTrabajador } = req.body;
-
   if (!email || !password) {
     return res.status(400).send('Email and password are required');
   }
-
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) {
       console.error('Error hashing password:', err);
