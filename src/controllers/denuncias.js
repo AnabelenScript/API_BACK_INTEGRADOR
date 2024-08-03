@@ -42,7 +42,17 @@ exports.getAllDenuncias = [authenticateJWT, (req, res) => {
     });
   }];
 
-
+exports.verAllDenuncias = [authenticateJWT, (req, res) => {
+      db.query('SELECT * FROM Denuncia', (err, result) => {
+        if (err) {
+          res.status(500).send('Error al obtener las Denuncias');
+          throw err;
+        }
+        res.json(result);
+        console.log(result);
+      });
+    }];
+  
   exports.addDenuncia = [authenticateJWT, (req, res) => {
     const idUsuario = req.params.id;
     const { gravedadCaso, motivoDenuncia, fechaDenuncia, estatusDenuncia, horaDenuncia,caso, fechaCaso, violentador } = req.body;

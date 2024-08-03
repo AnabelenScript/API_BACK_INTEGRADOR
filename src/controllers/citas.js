@@ -40,6 +40,18 @@ exports.getAllCitasPsicologicas = [authenticateJWT, (req, res) => {
   });
 }];
 
+exports.getAllCitasHorario = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.id;
+  db.query('SELECT * FROM Citas WHERE idUsuario = ? AND tipo = ?', [idUsuario, 'psicologica'], (err, result) => {
+    if (err) {
+      console.error('Error al obtener las citas:', err);
+      res.status(500).send('Error al obtener las citas');
+      return;
+    }
+    res.json(result);
+  });
+}];
+
 exports.verAllCitas = [authenticateJWT, (req, res) => {
   db.query('SELECT * FROM Citas', [], (err, result) => {
     if (err) {
