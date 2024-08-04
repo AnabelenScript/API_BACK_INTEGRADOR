@@ -98,7 +98,7 @@ exports.getAllCitasJuridicas = [authenticateJWT, (req, res) => {
       return res.status(400).send('Todos los campos son obligatorios');
     }
     if (idDenuncia) {
-      db.query('SELECT * FROM Denuncias WHERE idDenuncia = ?', [idDenuncia], (err, result) => {
+      db.query('SELECT * FROM Denuncia WHERE idDenuncia = ?', [idDenuncia], (err, result) => {
         if (err) {
           return res.status(500).send('Error al verificar la denuncia');
         }

@@ -4,7 +4,7 @@ const denunciasController = require('../controllers/denuncias');
 
 
 router.get('/getAllDenuncias', denunciasController.getAllDenuncias);
-router.get('/verAllDenuncias', denunciasController.getAllDenuncias);
+router.get('/verAllDenuncias', denunciasController.verAllDenuncias);
 router.post('/addDenuncia', denunciasController.addDenuncia);
 router.put('/finalizarDenuncia/:idDenuncia', denunciasController.finalizarDenuncia);
 

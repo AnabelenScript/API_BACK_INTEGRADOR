@@ -5,7 +5,7 @@ const { registrarPersonal } = require('../controllers/Usuarios');
 const { addUser } = require('../controllers/Usuarios');
 const {login} = require('../controllers/Usuarios')
 
-router.get('/', usuariosController.getAllUsers);
+router.get('/verAllUsers', usuariosController.verAllUsers);
 router.get('/getPerfil', usuariosController.getPerfil);
 router.get('/getUser', usuariosController.getUser);
 router.put('/:id', usuariosController.updateUser);

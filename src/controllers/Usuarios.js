@@ -99,7 +99,7 @@ exports.getTrabajador = [authenticateJWT, (req, res) => {
 
 
 
-exports.getAllUsers = [authenticateJWT, (req, res) => {
+exports.verAllUsers = [authenticateJWT, (req, res) => {
   db.query('SELECT * FROM Usuarios', (err, result) => {
     if (err) {
       res.status(500).send('Error al obtener los usuarios');
