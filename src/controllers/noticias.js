@@ -31,8 +31,7 @@ const authenticateJWT = (req, res, next) => {
 
 
 exports.getAllNoticias = [authenticateJWT, (req, res) => {
-  const idUsuario = req.params.id;
-    db.query('SELECT * FROM Noticias WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    db.query('SELECT * FROM Noticias', (err, result) => {
       if (err) {
         res.status(500).send('Error al obtener las Noticias');
         throw err;
@@ -42,15 +41,13 @@ exports.getAllNoticias = [authenticateJWT, (req, res) => {
   }];
 
   exports.addNoticia = [authenticateJWT, (req, res) => {
+    const idUsuario = req.params.id;
     const { descripcion, fecha, titulo } = req.body;
-  
-    console.log('Datos recibidos:', { descripcion, fecha, titulo });
   
     if (!descripcion || !fecha || !titulo) {
       return res.status(400).send('Todos los campos son obligatorios');
     }
-    const newNoticia = { descripcion, fecha, titulo };
-    db.query('INSERT INTO Noticias (descripcion, fecha, titulo) VALUES (?, ?, ?)', [newNoticia.descripcion, newNoticia.fecha, newNoticia.titulo], (err, result) => {
+    db.query('INSERT INTO Noticias (descripcion, fecha, titulo, idUsuario) VALUES (?, ?, ?, ?)', [descripcion, fecha, titulo, idUsuario], (err, result) => {
       if (err) {
         console.error('Error en la consulta:', err);
         return res.status(500).send('Error al agregar la noticia');
@@ -60,9 +57,9 @@ exports.getAllNoticias = [authenticateJWT, (req, res) => {
   }];
   
   exports.updateNoticia = [authenticateJWT, (req, res) => {
-    const idUsuario = req.params.id;
+    const idNoticia = req.params.idNoticia;
     const updateNoticia = req.body;
-    db.query('UPDATE Usuarios SET ? WHERE idUsuario = ?', [updateNoticia, idUsuario], (err, result) => {
+    db.query('UPDATE Noticias SET ? WHERE idNoticia = ?', [updateNoticia, idNoticia], (err, result) => {
       if (err) {
         res.status(500).send('Error al actualizar los datos');
         throw err;
@@ -72,8 +69,7 @@ exports.getAllNoticias = [authenticateJWT, (req, res) => {
   }];
 
   exports.deleteNoticias = [authenticateJWT, (req, res) => {
-    const idNoticia = req.params.id;
-  
+    const idNoticia = req.params.idNoticia;
     db.query('DELETE FROM Noticias WHERE idNoticia = ?', idNoticia, (err, result) => {
       if (err) {
         res.status(500).send('Error al eliminar la noticia');

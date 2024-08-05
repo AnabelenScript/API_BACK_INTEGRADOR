@@ -5,7 +5,7 @@ const noticiasController = require('../controllers/noticias');
 
 router.get('/getAllNoticias', noticiasController.getAllNoticias);
 router.post('/addNoticia', noticiasController.addNoticia);
-router.put('/updateNoticias', noticiasController.updateNoticia);
-router.delete('/deleteNoticias', noticiasController.deleteNoticias);
+router.put('/updateNoticias/:idNoticia', noticiasController.updateNoticia);
+router.delete('/deleteNoticias/:idNoticia', noticiasController.deleteNoticias);
 
 module.exports = router;

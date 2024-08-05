@@ -75,11 +75,45 @@ exports.getUser = [authenticateJWT, (req, res) => {
     res.json(result);
   });
 }];
-exports.getDatosPersonales = [authenticateJWT, (req, res) => {
+
+exports.getDatosPersonales1 = [authenticateJWT, (req, res) => {
   const idUsuario = req.params.id;
   db.query('SELECT * FROM datosPersonales WHERE idUsuario = ?', [idUsuario], (err, result) => {
     if (err) {
       res.status(500).send('Error al obtener los datos personales');
+      throw err;
+    }
+    res.json(result);
+  });
+}];
+
+exports.getDatosPersonales = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.idUsuario;
+  db.query('SELECT * FROM datosPersonales WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener los datos personales');
+      throw err;
+    }
+    res.json(result);
+  });
+}];
+
+exports.getDatosVivienda = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.idUsuario;
+  db.query('SELECT * FROM datosVivienda WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener los datos de vivienda');
+      throw err;
+    }
+    res.json(result);
+  });
+}];
+
+exports.getDatosEconomicos = [authenticateJWT, (req, res) => {
+  const idUsuario = req.params.idUsuario;
+  db.query('SELECT * FROM datosEconomicos WHERE idUsuario = ?', [idUsuario], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al obtener los datos economicos');
       throw err;
     }
     res.json(result);
@@ -100,7 +134,7 @@ exports.getTrabajador = [authenticateJWT, (req, res) => {
 
 
 exports.verAllUsers = [authenticateJWT, (req, res) => {
-  db.query('SELECT * FROM Usuarios', (err, result) => {
+  db.query('SELECT * FROM Usuarios WHERE tipoPerfil = 2', (err, result) => {
     if (err) {
       res.status(500).send('Error al obtener los usuarios');
       throw err;
