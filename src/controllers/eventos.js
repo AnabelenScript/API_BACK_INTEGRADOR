@@ -70,7 +70,6 @@ exports.getAllEventos = [authenticateJWT, (req, res) => {
 
   exports.deleteEvento = [authenticateJWT, (req, res) => {
     const idEventos = req.params.idEventos;
-  
     db.query('DELETE FROM Eventos WHERE idEventos = ?', idEventos, (err, result) => {
       if (err) {
         res.status(500).send('Error al eliminar el evento');
