@@ -47,7 +47,7 @@ exports.getAllEventos = [authenticateJWT, (req, res) => {
     if (!fechaEvento || !horario || !descripcion || !finalInscripcion || !calle || !colonia || !numExterior || !codigoPostal) {
       return res.status(400).send('Todos los campos son obligatorios');
     }
-    db.query('INSERT INTO Eventos (fechaEvento, horario, descripcion, finalInscripcion, calle, colonia, numExterior, codigoPostal, idUsuario) VALUES (?, ?, ?, ?, ?,?)',
+    db.query('INSERT INTO Eventos (fechaEvento, horario, descripcion, finalInscripcion, calle, colonia, numExterior, codigoPostal, idUsuario) VALUES (?, ?, ?, ?, ?,?,?,?,?)',
       [fechaEvento, horario, descripcion, finalInscripcion, calle, colonia, numExterior, codigoPostal, idUsuario  ], (err, result) => {
       if (err) {
         res.status(500).send('Error al registrar los datos');
